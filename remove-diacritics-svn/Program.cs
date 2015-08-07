@@ -45,10 +45,11 @@ namespace remove_diacritics_svn
                 if (dir[0] != '.')
                 {
                     RenameRecursively(dirPath);
+
+                    //Rename this directory if needed
+                    SvnRenameIfNeeded(dirPath);
                 }
 
-                //Rename the directory if needed
-                SvnRenameIfNeeded(dirPath);
             }
         }
 
@@ -66,25 +67,35 @@ namespace remove_diacritics_svn
 
         private static void SvnRenameIfNeeded(string file)
         {
-            var renamedFile = RemoveDiacriticsFromFile(file);
-
-            if (renamedFile != file)
+            try
             {
-                Console.WriteLine("");
-                Console.WriteLine(string.Format("svn reanme \"{0}\" \"{1}\"", file, renamedFile));
+                var renamedFile = RemoveDiacriticsFromFile(file);
 
-                var currentDir = (new FileInfo(Assembly.GetEntryAssembly().Location)).Directory.FullName;
-                //var command = string.Format("{0}\\svn.exe rename \"{1}\" \"{2}\"", currentDir, file, renamedFile);
-                var command = string.Format("{0}\\svn.exe", currentDir);
-                var args = string.Format("rename \"{0}\" \"{1}\"" , file, renamedFile);
+                if (renamedFile != file)
+                {
+                    Console.WriteLine("");
+                    Console.WriteLine(string.Format("svn reanme \"{0}\" \"{1}\"", file, renamedFile));
 
-                Process process = new Process();
-                process.StartInfo.FileName = command;
-                process.StartInfo.Arguments = args;
-                process.Start(); 
+                    var currentDir = (new FileInfo(Assembly.GetEntryAssembly().Location)).Directory.FullName;
+                    //var command = string.Format("{0}\\svn.exe rename \"{1}\" \"{2}\"", currentDir, file, renamedFile);
+                    var command = string.Format("{0}\\svn.exe", currentDir);
+                    var args = string.Format("rename \"{0}\" \"{1}\"", file, renamedFile);
 
-                if (!process.WaitForExit(2000))
-                    Console.WriteLine("   ERROR! Process frozen!");
+                    Process process = new Process();
+                    process.StartInfo.FileName = command;
+                    process.StartInfo.Arguments = args;
+                    process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    process.Start();
+
+                    if (!process.WaitForExit(2000))
+                        Console.WriteLine("   ERROR! Process frozen!");
+                }
+            }
+            catch (Exception E)
+            {
+                Console.WriteLine("ERROR: " + E.Message);
+                //Console.ReadKey();
+
             }
         }
 
